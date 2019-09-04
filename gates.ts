@@ -66,8 +66,9 @@ class Gate {
   private l1Line: any;
   private l2Line: any;
   private l3Line: any;
+  private change: Function;
   private self: any;
-  constructor(public canvas: any, public gateType: string, public x: number, public y: number, public showText: boolean) {
+  constructor(public canvas: any, public gateType: string, public x: number, public y: number, public showText: boolean, change: Function = () => {}) {
     this.l1 = new LogicalInputOutput(this.canvas, this.x - 20, this.y + 69, false, true, () => this.calc());
     if (this.gateType === "NOT") {
       this.l1 = new LogicalInputOutput(this.canvas, this.x - 20, this.y + 90, false, true, () => this.calc());
@@ -75,6 +76,7 @@ class Gate {
     this.l2 = new LogicalInputOutput(this.canvas, this.x - 20, this.y + 109, false, true, () => this.calc());
     this.l3 = new LogicalInputOutput(this.canvas, this.x + 200, this.y + 90, false, false);
     this.self = this;
+    this.change = change;
   }
 
   draw() {
@@ -132,6 +134,8 @@ class Gate {
     this.l1Line.stroke({ color: this.l1.getValue() ? "green" : "red" });
     if (this.l2Line) this.l2Line.stroke({ color: this.l2.getValue() ? "green" : "red" });
     this.l3Line.stroke({ color: this.l3.getValue() ? "green" : "red" });
+
+    this.change({ gateType: this.gateType, a: this.l1.getValue(), b: this.l2.getValue() });
   }
 
   private myXOR(a: boolean, b: boolean) {

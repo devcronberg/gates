@@ -47,8 +47,9 @@ var LogicalInputOutput = /** @class */ (function () {
     return LogicalInputOutput;
 }());
 var Gate = /** @class */ (function () {
-    function Gate(canvas, gateType, x, y, showText) {
+    function Gate(canvas, gateType, x, y, showText, change) {
         var _this = this;
+        if (change === void 0) { change = function () { }; }
         this.canvas = canvas;
         this.gateType = gateType;
         this.x = x;
@@ -61,6 +62,7 @@ var Gate = /** @class */ (function () {
         this.l2 = new LogicalInputOutput(this.canvas, this.x - 20, this.y + 109, false, true, function () { return _this.calc(); });
         this.l3 = new LogicalInputOutput(this.canvas, this.x + 200, this.y + 90, false, false);
         this.self = this;
+        this.change = change;
     }
     Gate.prototype.draw = function () {
         if (this.gateType === "NOT")
@@ -130,6 +132,7 @@ var Gate = /** @class */ (function () {
         if (this.l2Line)
             this.l2Line.stroke({ color: this.l2.getValue() ? "green" : "red" });
         this.l3Line.stroke({ color: this.l3.getValue() ? "green" : "red" });
+        this.change({ gateType: this.gateType, a: this.l1.getValue(), b: this.l2.getValue() });
     };
     Gate.prototype.myXOR = function (a, b) {
         return (a || b) && !(a && b);
