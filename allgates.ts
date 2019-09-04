@@ -7,4 +7,8 @@
   let nor = new Gate(canvas, "NOR", 100, 400, true).draw();
   let nand = new Gate(canvas, "NAND", 100, 500, true).draw();
   let xnor = new Gate(canvas, "XNOR", 100, 600, true).draw();
+
+  $.getJSON("./data/data.json", {}, function(d) {
+    console.log(d);
+  });
 })();
