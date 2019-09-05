@@ -1,14 +1,30 @@
 "use strict";
+var ShowName;
+(function (ShowName) {
+    ShowName[ShowName["hidden"] = 0] = "hidden";
+    ShowName[ShowName["left"] = 1] = "left";
+    ShowName[ShowName["right"] = 2] = "right";
+    ShowName[ShowName["top"] = 3] = "top";
+    ShowName[ShowName["bottom"] = 4] = "bottom";
+})(ShowName || (ShowName = {}));
 var LogicalInputOutput = /** @class */ (function () {
-    function LogicalInputOutput(canvas, x, y, value, clickable, change) {
-        if (change === void 0) { change = function () { }; }
-        this.canvas = canvas;
-        this.clickable = false;
-        this.x = x;
-        this.y = y;
-        this.value = value;
-        this.clickable = clickable;
-        this.change = change;
+    function LogicalInputOutput(settings) {
+        if (!settings.change)
+            settings.change = function () { };
+        if (!settings.clickable)
+            settings.clickable = false;
+        if (!settings.name)
+            settings.name = "";
+        if (!settings.showName)
+            settings.showName = ShowName.hidden;
+        this.x = settings.x;
+        this.y = settings.y;
+        this.value = settings.value;
+        this.change = settings.change;
+        this.clickable = settings.clickable;
+        this.name = settings.name;
+        this.showName = settings.showName;
+        this.canvas = settings.canvas;
     }
     LogicalInputOutput.prototype.draw = function () {
         this.box = this.canvas
@@ -22,6 +38,20 @@ var LogicalInputOutput = /** @class */ (function () {
             .font({ size: 14, weight: "bold" })
             .fill("white")
             .move(this.x + 6, this.y + 2);
+        if (this.showName) {
+            if (this.showName === ShowName.left) {
+                this.canvas
+                    .text(this.name)
+                    .font({ size: 14, weight: "bold" })
+                    .move(this.x - 20, this.y + 2);
+            }
+            if (this.showName === ShowName.right) {
+                this.canvas
+                    .text(this.name)
+                    .font({ size: 14, weight: "bold" })
+                    .move(this.x + 30, this.y + 2);
+            }
+        }
         $("text tspan").addClass("svgText");
         var self = this;
         if (this.clickable) {
@@ -47,23 +77,61 @@ var LogicalInputOutput = /** @class */ (function () {
     return LogicalInputOutput;
 }());
 var Gate = /** @class */ (function () {
-    function Gate(canvas, gateType, x, y, showText, change) {
+    function Gate(settings) {
         var _this = this;
-        if (change === void 0) { change = function () { }; }
-        this.canvas = canvas;
-        this.gateType = gateType;
-        this.x = x;
-        this.y = y;
-        this.showText = showText;
-        this.l1 = new LogicalInputOutput(this.canvas, this.x - 20, this.y + 69, false, true, function () { return _this.calc(); });
+        if (!settings.showText)
+            settings.showText = true;
+        if (!settings.change)
+            settings.change = function () { };
+        if (!settings.readOnly)
+            settings.readOnly = false;
+        if (!settings.aText && settings.aText !== "")
+            settings.aText = "A";
+        if (!settings.bText && settings.bText !== "")
+            settings.bText = "B";
+        if (!settings.qText && settings.qText !== "")
+            settings.qText = "Q";
+        this.canvas = settings.canvas;
+        this.gateType = settings.gateType;
+        this.x = settings.x;
+        this.y = settings.y;
+        this.showText = settings.showText;
+        this.change = settings.change;
+        this.readOnly = settings.readOnly;
+        this.aText = settings.aText;
+        this.bText = settings.bText;
+        this.qText = settings.qText;
+        this.change = settings.change;
+        var settingsL = {
+            canvas: this.canvas,
+            x: this.x - 20,
+            y: this.y + 69,
+            clickable: !this.readOnly,
+            value: false,
+            change: function () { return _this.calc(); },
+            name: this.aText,
+            showName: ShowName.left
+        };
+        this.l1 = new LogicalInputOutput(settingsL);
         if (this.gateType === "NOT") {
-            this.l1 = new LogicalInputOutput(this.canvas, this.x - 20, this.y + 90, false, true, function () { return _this.calc(); });
+            settingsL.y = this.y + 90;
+            this.l1 = new LogicalInputOutput(settingsL);
         }
-        this.l2 = new LogicalInputOutput(this.canvas, this.x - 20, this.y + 109, false, true, function () { return _this.calc(); });
-        this.l3 = new LogicalInputOutput(this.canvas, this.x + 200, this.y + 90, false, false);
+        settingsL = { canvas: this.canvas, x: this.x - 20, y: this.y + 109, clickable: !this.readOnly, value: false, change: function () { return _this.calc(); }, name: this.bText, showName: ShowName.left };
+        this.l2 = new LogicalInputOutput(settingsL);
+        settingsL = { canvas: this.canvas, x: this.x + 200, y: this.y + 90, clickable: false, value: false, change: function () { return _this.calc(); }, name: this.qText, showName: ShowName.right };
+        this.l3 = new LogicalInputOutput(settingsL);
         this.self = this;
-        this.change = change;
+        this.change = settings.change;
     }
+    Gate.prototype.setAValue = function (value) {
+        this.l1.setValue(value);
+        this.calc();
+    };
+    Gate.prototype.setBValue = function (value) {
+        this.l2.setValue(value);
+        this.calc();
+    };
     Gate.prototype.draw = function () {
         if (this.gateType === "NOT")
             this.image = this.canvas.image("images/1920px-NOT_ANSI.svg.png", 200, 200).move(this.x, this.y);
@@ -83,25 +151,6 @@ var Gate = /** @class */ (function () {
         if (this.gateType !== "NOT")
             this.l2.draw();
         this.l3.draw();
-        if (this.gateType === "NOT") {
-            this.l1Line = this.canvas.line(this.x + 10, this.y + 100, this.x + 58, this.y + 100).stroke({ width: 4, color: "black" });
-            this.l3Line = this.canvas.line(this.x + 161, this.y + 100, this.x + 190, this.y + 100).stroke({ width: 4, color: "black" });
-        }
-        else {
-            this.l1Line = this.canvas.line(this.x + 10, this.y + 80, this.x + 59, this.y + 80).stroke({ width: 4, color: "black" });
-        }
-        if (this.gateType !== "NOT") {
-            this.l2Line = this.canvas.line(this.x + 10, this.y + 120, this.x + 59, this.y + 120).stroke({ width: 4, color: "black" });
-        }
-        if (this.gateType === "OR" || this.gateType === "XOR") {
-            this.l3Line = this.canvas.line(this.x + 145, this.y + 100, this.x + 190, this.y + 100).stroke({ width: 4, color: "black" });
-        }
-        else if (this.gateType === "AND") {
-            this.l3Line = this.canvas.line(this.x + 141, this.y + 100, this.x + 190, this.y + 100).stroke({ width: 4, color: "black" });
-        }
-        else if (this.gateType === "NOR" || this.gateType === "NAND" || this.gateType === "XNOR") {
-            this.l3Line = this.canvas.line(this.x + 161, this.y + 100, this.x + 190, this.y + 100).stroke({ width: 4, color: "black" });
-        }
         if (this.showText) {
             var t = this.gateType;
             this.canvas
@@ -128,10 +177,6 @@ var Gate = /** @class */ (function () {
         if (this.gateType === "NOT")
             v = !this.l1.getValue();
         this.l3.setValue(v);
-        this.l1Line.stroke({ color: this.l1.getValue() ? "green" : "red" });
-        if (this.l2Line)
-            this.l2Line.stroke({ color: this.l2.getValue() ? "green" : "red" });
-        this.l3Line.stroke({ color: this.l3.getValue() ? "green" : "red" });
         this.change({ gateType: this.gateType, a: this.l1.getValue(), b: this.l2.getValue() });
     };
     Gate.prototype.myXOR = function (a, b) {

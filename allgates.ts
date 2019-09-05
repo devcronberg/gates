@@ -1,12 +1,12 @@
 (() => {
   var canvas = SVG("drawing").size(400, 800);
-  let not = new Gate(canvas, "NOT", 100, 0, true, drawTruthTable).draw();
-  let or = new Gate(canvas, "OR", 100, 100, true, drawTruthTable).draw();
-  let and = new Gate(canvas, "AND", 100, 200, true, drawTruthTable).draw();
-  let xor = new Gate(canvas, "XOR", 100, 300, true, drawTruthTable).draw();
-  let nor = new Gate(canvas, "NOR", 100, 400, true, drawTruthTable).draw();
-  let nand = new Gate(canvas, "NAND", 100, 500, true, drawTruthTable).draw();
-  let xnor = new Gate(canvas, "XNOR", 100, 600, true, drawTruthTable).draw();
+  let not = new Gate({ canvas: canvas, gateType: "NOT", x: 100, y: 0, change: drawTruthTable }).draw();
+  let or = new Gate({ canvas: canvas, gateType: "OR", x: 100, y: 100, change: drawTruthTable }).draw();
+  let and = new Gate({ canvas: canvas, gateType: "AND", x: 100, y: 200, change: drawTruthTable }).draw();
+  let xor = new Gate({ canvas: canvas, gateType: "XOR", x: 100, y: 300, change: drawTruthTable }).draw();
+  let nor = new Gate({ canvas: canvas, gateType: "NOR", x: 100, y: 400, change: drawTruthTable }).draw();
+  let nand = new Gate({ canvas: canvas, gateType: "NAND", x: 100, y: 500, change: drawTruthTable }).draw();
+  let xnor = new Gate({ canvas: canvas, gateType: "XNOR", x: 100, y: 600, change: drawTruthTable }).draw();
   $(".truthtable").hide();
 
   function drawTruthTable(d: any) {
