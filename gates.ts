@@ -6,7 +6,7 @@ interface LogicalInputSettings {
   y: number;
   value: boolean;
   clickable?: boolean;
-  change?: Function;
+  change?: LogicalInputOutputChangeEvent;
   name?: string;
   showName?: ShowName;
 }
@@ -19,6 +19,15 @@ enum ShowName {
   bottom
 }
 
+interface LogicalInputOutputChangeEventArgs {
+  v: boolean;
+  logicalInputOutput: LogicalInputOutput;
+}
+
+type LogicalInputOutputChangeEvent = (
+  args: LogicalInputOutputChangeEventArgs
+) => void;
+
 class LogicalInputOutput {
   private x: number;
   private y: number;
@@ -26,7 +35,7 @@ class LogicalInputOutput {
   private value: boolean;
   private box: any;
   private text: any;
-  private change: Function;
+  private change: LogicalInputOutputChangeEvent;
   private clickable: boolean;
   private name: string;
   private showName: ShowName;
@@ -81,7 +90,7 @@ class LogicalInputOutput {
       this.box.on("click", function() {
         self.value = !self.value;
         self.updateText();
-        self.change();
+        self.change({ v: self.getValue(), logicalInputOutput: self });
       });
     }
   }
@@ -100,6 +109,10 @@ class LogicalInputOutput {
     this.value = value;
     this.updateText();
   }
+
+  setChange(change: LogicalInputOutputChangeEvent) {
+    this.change = change;
+  }
 }
 
 interface GateSettings {
@@ -108,7 +121,7 @@ interface GateSettings {
   x: number;
   y: number;
   showText?: boolean;
-  change?: Function;
+  change?: GateChangeEvent;
   readOnly?: boolean;
   aText?: string;
   bText?: string;
@@ -116,12 +129,22 @@ interface GateSettings {
   showName?: boolean;
 }
 
+interface GateChangeEventArgs {
+  a: boolean;
+  b: boolean;
+  gateType: string;
+  gate: Gate;
+  q: boolean;
+}
+
+type GateChangeEvent = (args: GateChangeEventArgs) => void;
+
 class Gate {
   private image: any;
   private l1: LogicalInputOutput;
   private l2: LogicalInputOutput;
   private l3: LogicalInputOutput;
-  private change: Function;
+  private change: GateChangeEvent;
   private self: any;
   private canvas: any;
   private gateType: string;
@@ -136,6 +159,10 @@ class Gate {
   setAValue(value: boolean) {
     this.l1.setValue(value);
     this.calc();
+  }
+
+  setChange(change: GateChangeEvent) {
+    this.change = change;
   }
 
   setBValue(value: boolean) {
@@ -178,23 +205,62 @@ class Gate {
       settingsL.y = this.y + 90;
       this.l1 = new LogicalInputOutput(settingsL);
     }
-    settingsL = { canvas: this.canvas, x: this.x - 20, y: this.y + 109, clickable: !this.readOnly, value: false, change: () => this.calc(), name: this.bText, showName: ShowName.left };
+    settingsL = {
+      canvas: this.canvas,
+      x: this.x - 20,
+      y: this.y + 109,
+      clickable: !this.readOnly,
+      value: false,
+      change: () => this.calc(),
+      name: this.bText,
+      showName: ShowName.left
+    };
     this.l2 = new LogicalInputOutput(settingsL);
 
-    settingsL = { canvas: this.canvas, x: this.x + 200, y: this.y + 90, clickable: false, value: false, change: () => this.calc(), name: this.qText, showName: ShowName.right };
+    settingsL = {
+      canvas: this.canvas,
+      x: this.x + 200,
+      y: this.y + 90,
+      clickable: false,
+      value: false,
+      change: () => this.calc(),
+      name: this.qText,
+      showName: ShowName.right
+    };
     this.l3 = new LogicalInputOutput(settingsL);
     this.self = this;
     this.change = settings.change;
   }
 
   draw() {
-    if (this.gateType === "NOT") this.image = this.canvas.image("images/1920px-NOT_ANSI.svg.png", 200, 200).move(this.x, this.y);
-    if (this.gateType === "XOR") this.image = this.canvas.image("images/1920px-XOR_ANSI.svg.png", 200, 200).move(this.x, this.y);
-    if (this.gateType === "AND") this.image = this.canvas.image("images/1920px-AND_ANSI.svg.png", 200, 200).move(this.x, this.y);
-    if (this.gateType === "OR") this.image = this.canvas.image("images/1920px-OR_ANSI.svg.png", 200, 200).move(this.x, this.y);
-    if (this.gateType === "NAND") this.image = this.canvas.image("images/1920px-NAND_ANSI.svg.png", 200, 200).move(this.x, this.y);
-    if (this.gateType === "NOR") this.image = this.canvas.image("images/1920px-NOR_ANSI.svg.png", 200, 200).move(this.x, this.y);
-    if (this.gateType === "XNOR") this.image = this.canvas.image("images/1920px-XNOR_ANSI.svg.png", 200, 200).move(this.x, this.y);
+    if (this.gateType === "NOT")
+      this.image = this.canvas
+        .image("images/1920px-NOT_ANSI.svg.png", 200, 200)
+        .move(this.x, this.y);
+    if (this.gateType === "XOR")
+      this.image = this.canvas
+        .image("images/1920px-XOR_ANSI.svg.png", 200, 200)
+        .move(this.x, this.y);
+    if (this.gateType === "AND")
+      this.image = this.canvas
+        .image("images/1920px-AND_ANSI.svg.png", 200, 200)
+        .move(this.x, this.y);
+    if (this.gateType === "OR")
+      this.image = this.canvas
+        .image("images/1920px-OR_ANSI.svg.png", 200, 200)
+        .move(this.x, this.y);
+    if (this.gateType === "NAND")
+      this.image = this.canvas
+        .image("images/1920px-NAND_ANSI.svg.png", 200, 200)
+        .move(this.x, this.y);
+    if (this.gateType === "NOR")
+      this.image = this.canvas
+        .image("images/1920px-NOR_ANSI.svg.png", 200, 200)
+        .move(this.x, this.y);
+    if (this.gateType === "XNOR")
+      this.image = this.canvas
+        .image("images/1920px-XNOR_ANSI.svg.png", 200, 200)
+        .move(this.x, this.y);
 
     this.l1.draw();
     if (this.gateType !== "NOT") this.l2.draw();
@@ -213,15 +279,25 @@ class Gate {
 
   calc() {
     let v = true;
-    if (this.gateType === "XOR") v = this.myXOR(this.l1.getValue(), this.l2.getValue());
-    if (this.gateType === "XNOR") v = !this.myXOR(this.l1.getValue(), this.l2.getValue());
+    if (this.gateType === "XOR")
+      v = this.myXOR(this.l1.getValue(), this.l2.getValue());
+    if (this.gateType === "XNOR")
+      v = !this.myXOR(this.l1.getValue(), this.l2.getValue());
     if (this.gateType === "AND") v = this.l1.getValue() && this.l2.getValue();
-    if (this.gateType === "NAND") v = !(this.l1.getValue() && this.l2.getValue());
+    if (this.gateType === "NAND")
+      v = !(this.l1.getValue() && this.l2.getValue());
     if (this.gateType === "OR") v = this.l1.getValue() || this.l2.getValue();
-    if (this.gateType === "NOR") v = !(this.l1.getValue() || this.l2.getValue());
+    if (this.gateType === "NOR")
+      v = !(this.l1.getValue() || this.l2.getValue());
     if (this.gateType === "NOT") v = !this.l1.getValue();
     this.l3.setValue(v);
-    this.change({ gateType: this.gateType, a: this.l1.getValue(), b: this.l2.getValue() });
+    this.change({
+      gateType: this.gateType,
+      a: this.l1.getValue(),
+      b: this.l2.getValue(),
+      q: v,
+      gate: this
+    });
   }
 
   private myXOR(a: boolean, b: boolean) {

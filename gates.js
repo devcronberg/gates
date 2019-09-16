@@ -58,7 +58,7 @@ var LogicalInputOutput = /** @class */ (function () {
             this.box.on("click", function () {
                 self.value = !self.value;
                 self.updateText();
-                self.change();
+                self.change({ v: self.getValue(), logicalInputOutput: self });
             });
         }
     };
@@ -73,6 +73,9 @@ var LogicalInputOutput = /** @class */ (function () {
     LogicalInputOutput.prototype.setValue = function (value) {
         this.value = value;
         this.updateText();
+    };
+    LogicalInputOutput.prototype.setChange = function (change) {
+        this.change = change;
     };
     return LogicalInputOutput;
 }());
@@ -117,9 +120,27 @@ var Gate = /** @class */ (function () {
             settingsL.y = this.y + 90;
             this.l1 = new LogicalInputOutput(settingsL);
         }
-        settingsL = { canvas: this.canvas, x: this.x - 20, y: this.y + 109, clickable: !this.readOnly, value: false, change: function () { return _this.calc(); }, name: this.bText, showName: ShowName.left };
+        settingsL = {
+            canvas: this.canvas,
+            x: this.x - 20,
+            y: this.y + 109,
+            clickable: !this.readOnly,
+            value: false,
+            change: function () { return _this.calc(); },
+            name: this.bText,
+            showName: ShowName.left
+        };
         this.l2 = new LogicalInputOutput(settingsL);
-        settingsL = { canvas: this.canvas, x: this.x + 200, y: this.y + 90, clickable: false, value: false, change: function () { return _this.calc(); }, name: this.qText, showName: ShowName.right };
+        settingsL = {
+            canvas: this.canvas,
+            x: this.x + 200,
+            y: this.y + 90,
+            clickable: false,
+            value: false,
+            change: function () { return _this.calc(); },
+            name: this.qText,
+            showName: ShowName.right
+        };
         this.l3 = new LogicalInputOutput(settingsL);
         this.self = this;
         this.change = settings.change;
@@ -128,25 +149,42 @@ var Gate = /** @class */ (function () {
         this.l1.setValue(value);
         this.calc();
     };
+    Gate.prototype.setChange = function (change) {
+        this.change = change;
+    };
     Gate.prototype.setBValue = function (value) {
         this.l2.setValue(value);
         this.calc();
     };
     Gate.prototype.draw = function () {
         if (this.gateType === "NOT")
-            this.image = this.canvas.image("images/1920px-NOT_ANSI.svg.png", 200, 200).move(this.x, this.y);
+            this.image = this.canvas
+                .image("images/1920px-NOT_ANSI.svg.png", 200, 200)
+                .move(this.x, this.y);
         if (this.gateType === "XOR")
-            this.image = this.canvas.image("images/1920px-XOR_ANSI.svg.png", 200, 200).move(this.x, this.y);
+            this.image = this.canvas
+                .image("images/1920px-XOR_ANSI.svg.png", 200, 200)
+                .move(this.x, this.y);
         if (this.gateType === "AND")
-            this.image = this.canvas.image("images/1920px-AND_ANSI.svg.png", 200, 200).move(this.x, this.y);
+            this.image = this.canvas
+                .image("images/1920px-AND_ANSI.svg.png", 200, 200)
+                .move(this.x, this.y);
         if (this.gateType === "OR")
-            this.image = this.canvas.image("images/1920px-OR_ANSI.svg.png", 200, 200).move(this.x, this.y);
+            this.image = this.canvas
+                .image("images/1920px-OR_ANSI.svg.png", 200, 200)
+                .move(this.x, this.y);
         if (this.gateType === "NAND")
-            this.image = this.canvas.image("images/1920px-NAND_ANSI.svg.png", 200, 200).move(this.x, this.y);
+            this.image = this.canvas
+                .image("images/1920px-NAND_ANSI.svg.png", 200, 200)
+                .move(this.x, this.y);
         if (this.gateType === "NOR")
-            this.image = this.canvas.image("images/1920px-NOR_ANSI.svg.png", 200, 200).move(this.x, this.y);
+            this.image = this.canvas
+                .image("images/1920px-NOR_ANSI.svg.png", 200, 200)
+                .move(this.x, this.y);
         if (this.gateType === "XNOR")
-            this.image = this.canvas.image("images/1920px-XNOR_ANSI.svg.png", 200, 200).move(this.x, this.y);
+            this.image = this.canvas
+                .image("images/1920px-XNOR_ANSI.svg.png", 200, 200)
+                .move(this.x, this.y);
         this.l1.draw();
         if (this.gateType !== "NOT")
             this.l2.draw();
@@ -177,7 +215,13 @@ var Gate = /** @class */ (function () {
         if (this.gateType === "NOT")
             v = !this.l1.getValue();
         this.l3.setValue(v);
-        this.change({ gateType: this.gateType, a: this.l1.getValue(), b: this.l2.getValue() });
+        this.change({
+            gateType: this.gateType,
+            a: this.l1.getValue(),
+            b: this.l2.getValue(),
+            q: v,
+            gate: this
+        });
     };
     Gate.prototype.myXOR = function (a, b) {
         return (a || b) && !(a && b);
